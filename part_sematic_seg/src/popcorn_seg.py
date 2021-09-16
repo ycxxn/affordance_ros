@@ -25,7 +25,7 @@ class popcorn_node:
         rospy.Subscriber("/camera/color/image_raw", msg_Image, self.imageCallback)
         rospy.Subscriber("popcorn_pub", Float32MultiArray, self.popcorn_callback)
 
-        self.pub_xya = rospy.Publisher('popcorn_xya', String, queue_size=10)
+        self.pub_xya = rospy.Publisher('popcorn_xya', XYA, queue_size=10)
         self.image_pub = rospy.Publisher("popcorn_seg_img", msg_Image)
         rospy.spin()
 

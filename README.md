@@ -1,9 +1,9 @@
-download weighting for YOLOv4
-https://drive.google.com/drive/folders/1dlr5jqBtIn0p6nySPJwbV-puL-CtW10m?usp=sharing
+## download weighting for YOLOv4
+[YOLOv4 weight link](https://drive.google.com/drive/folders/1dlr5jqBtIn0p6nySPJwbV-puL-CtW10m?usp=sharing)  
 put files in folder
 <workspace>/src/affordance_ros/part_detection/weights/20210806/
 
-
+```
 #YOLOv4
 chomod +x demo_d435i.py
 
@@ -19,8 +19,20 @@ chomod +x show_seg_all.py
 rosrun part_sematic_seg juice_seg.py
 rosrun part_sematic_seg popcorn_seg.py
 rosrun part_sematic_seg show_seg_all.py
+```
 
+## Dependencies
+* Install [realsense-ros](https://github.com/IntelRealSense/realsense-ros)
+* Install [cv_bridge for Python3]()
 
+## Software environment
+* Ubuntu 18.04
+* ROS Melodic
+* Python 3.6.9
+* opencv 4.5.1 cv2 (?)
+* cv_bridge (python3 待測試) (?)
+* Install pcl (?)
+* Install cv_bridge(?)
 
 ### 1. 部件分割 affordance_ros
    + (1) `part_detection: YOLOv4, YOLOv4-tiny` 

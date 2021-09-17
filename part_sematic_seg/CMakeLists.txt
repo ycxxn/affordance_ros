@@ -52,7 +52,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   XYA.msg
-  centrid.msg
+  XYAs.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -72,7 +72,7 @@ add_message_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
    DEPENDENCIES
-#   sensor_msgs
+   sensor_msgs
    std_msgs
 )
 
@@ -108,7 +108,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES part_sematic_seg
-#  CATKIN_DEPENDS cv_bridge message_generation rospy sensor_msgs std_msgs
+  CATKIN_DEPENDS cv_bridge message_runtime rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 

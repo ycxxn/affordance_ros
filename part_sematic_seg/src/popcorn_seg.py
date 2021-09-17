@@ -14,6 +14,7 @@ from sensor_msgs.msg import Image as msg_Image
 from seg_model import build_seg_model, get_roi
 from std_msgs.msg import String
 from part_sematic_seg.msg import XYA
+from part_sematic_seg.msg import XYAs
 
 class popcorn_node:
     def __init__(self):
@@ -25,7 +26,7 @@ class popcorn_node:
         rospy.Subscriber("/camera/color/image_raw", msg_Image, self.imageCallback)
         rospy.Subscriber("popcorn_pub", Float32MultiArray, self.popcorn_callback)
 
-        self.pub_xya = rospy.Publisher('popcorn_xya', XYA, queue_size=10)
+        self.pub_xya = rospy.Publisher('popcorn_xya', XYAs, queue_size=10)
         self.image_pub = rospy.Publisher("popcorn_seg_img", msg_Image)
         rospy.spin()
 
@@ -43,27 +44,28 @@ class popcorn_node:
         self.seg()
 
     def seg(self):
-        XYA_msg = XYA()
-        
-        mask_all, XYA_inf = get_roi(self.cv_image, self.popcorn, self.seg_m)
-        # print(XYA_inf)
-        XYA_pub = []
-        for i in XYA_inf:
+        mask_all, XYA_info = get_roi(self.cv_image, self.popcorn, self.seg_m)
+
+        XYA_list = XYAs()
+        for i in XYA_info:
             XYA_msg = XYA()
-            XYA_msg.c1 = i[0]
-            XYA_msg.c2 = i[1]
+            XYA_msg.centroid1_x = i[0][0]
+            XYA_msg.centroid1_y = i[0][1]
+            XYA_msg.centroid2_x = i[1][0]
+            XYA_msg.centroid2_y = i[1][1]
             XYA_msg.angle = i[2]
-            XYA_pub.append(XYA_msg)
+
+            XYA_list.xyas.append(XYA_msg)
+
             cv2.circle(mask_all, (i[0][0], i[0][1]), 10, (1, 227, 254), -1)
             cv2.circle(mask_all, (i[1][0], i[1][1]), 10, (1, 227, 254), -1)
-        # seg_img = self.seg_m.run(roi_img)
-        # cv2.imshow("1", roi_img)
-        rospy.loginfo(XYA_pub)
-        self.pub_xya.publish(XYA_msg)
+
+        rospy.loginfo(XYA_list)
+        self.pub_xya.publish(XYA_list)      
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(mask_all, encoding="passthrough"))
-        print('XYA_pub', XYA_pub)
-        cv2.imshow("popcorn_seg", mask_all)
-        cv2.waitKey(1)
+
+        # cv2.imshow("popcorn_seg", mask_all)
+        # cv2.waitKey(1)
        
 if __name__ == '__main__':
     popcorn_node()

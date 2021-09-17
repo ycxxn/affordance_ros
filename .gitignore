@@ -1,0 +1,7 @@
+.vscode
+
+*build
+*devel
+*.pyc
+
+CATKIN_IGNORE

@@ -18,7 +18,8 @@
   <arg name="filters"                   default="pointcloud"/>
 
   <!-- Include main launch file -->
-  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+  <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">-->
+  <include file="$(find realsense2_camera)/launch/rs_rgbd.launch"> 
     <arg name="depth_width"               value="$(arg depth_width      )"/>
     <arg name="depth_height"              value="$(arg depth_height     )"/>
     <arg name="enable_depth"              value="$(arg enable_depth     )"/>

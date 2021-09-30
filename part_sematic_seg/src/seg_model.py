@@ -5,7 +5,8 @@ from PIL import Image
 from torchvision import transforms
 from dataloaders.utils import  *
 from torchvision.utils import make_grid, save_image
-import math 
+import math
+from part_detection.msg import yolo_bboxes
 
 class build_seg_model:
     def __init__(self, model="mobilenet", class_num=2, ckpt= None):
@@ -48,25 +49,24 @@ class build_seg_model:
 
         return grid_image
 
-def get_roi(img, boxes, seg_m):
+def get_roi(img, bboxes, seg_m):
         XYA_inf = [] 
         width = img.shape[1]
         height = img.shape[0]
         mask_all = np.zeros((height, width, 3))
-        for i in range(len(boxes)):
-            box = boxes[i]
-            # if box[4]>thresh:
-            x1 = int(box[0] * width)
-            y1 = int(box[1] * height)
-            x2 = int(box[2] * width)
-            y2 = int(box[3] * height)
-            x1,y1,x2,y2 = np.clip([x1,y1,x2,y2],0,9999)
+        for i in range(len(bboxes)):            
+            x1 = bboxes[i].min_x
+            y1 = bboxes[i].min_y
+            x2 = bboxes[i].max_x
+            y2 = bboxes[i].max_y
+            x1, x2 = np.clip([x1, x2], 0, width)
+            y1, y2 = np.clip([y1, y2], 0, height)
             roi_img = img[y1:y2,x1:x2,:]
 
             roi_img = cv2.cvtColor(roi_img, cv2.COLOR_BGR2RGB)
             grid_image = seg_m.run(roi_img)
             grid_image = cv2.resize(grid_image,(x2-x1,y2-y1))
-            XYA = thresh_mask(grid_image, int(box[6]))
+            XYA = thresh_mask(grid_image, bboxes[i].object_name)
             XYA = local_XYA(XYA,x1,y1)
             XYA_inf.append(XYA)
             mask_all[y1:y2,x1:x2,:] += grid_image
@@ -88,7 +88,7 @@ def get_centroid(th):
 
 def thresh_mask(grid_image, classes):
     print(classes)
-    if classes == 0 or classes == 1:
+    if classes == 'popcorn_f' or classes == 'popcorn_b': #classes == 0, 1
         plant_th = grid_image[:,:,0] >= 0.50196078
         handle_th = grid_image[:,:,1] >= 0.50196078
 
@@ -101,7 +101,7 @@ def thresh_mask(grid_image, classes):
         angle = math.atan2(handle_c[1]-plant_c[1], plant_c[0]-handle_c[0])
         # print(plant_c, handle_c, angle*180/math.pi)
         return plant_c, handle_c, angle*180/math.pi
-    else:
+    else: #classes == 2: juice
         cap_th = grid_image[:,:,1] >= 0.50196078
         body_th = grid_image[:,:,0] >= 0.50196078
 

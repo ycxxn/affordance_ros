@@ -7,45 +7,44 @@ import rospkg
 import sys
 sys.path.insert(0, '/opt/installer/open_cv/cv_bridge/lib/python3/dist-packages/')
 from cv_bridge import CvBridge, CvBridgeError
-from rospy.numpy_msg import numpy_msg
-# from rospy_tutorials.msg import Floats
-from std_msgs.msg import Float32MultiArray
 
 from sensor_msgs.msg import Image as msg_Image
-from seg_model import build_seg_model, get_roi
-from std_msgs.msg import String
+from part_detection.msg import yolo_bboxes
 from part_sematic_seg.msg import XYA
 from part_sematic_seg.msg import XYAs
+
+from seg_model import build_seg_model, get_roi
 
 class juice_node:
     def __init__(self):
         rospy.init_node('juice_node')
         self.bridge = CvBridge()
+        self.img_width = 640
+        self.img_height = 480
         # self.seg_m = build_seg_model(model="mobilenet", class_num=3, ckpt="./weights/seg_mobilenet_juice.pth")
         pkg_path = rospkg.RosPack().get_path('part_sematic_seg')
         self.seg_m = build_seg_model(model="mobilenet", class_num=3, ckpt=pkg_path +"/weights/seg_mobilenet_juice.pth")
         rospy.Subscriber("/camera/color/image_raw", msg_Image, self.imageCallback)
-        rospy.Subscriber("juice_pub", Float32MultiArray, self.juice_callback)
+        rospy.Subscriber("juice_pub", yolo_bboxes, self.juice_callback)
 
         self.pub_xya = rospy.Publisher('juice_xya', XYAs, queue_size=100)
         self.image_pub = rospy.Publisher("juice_seg_img", msg_Image)
         rospy.spin()
 
-    def juice_callback(self,data):
-        print('juice', data.data)
-        if len(data.data) == 0:
-            self.juice = []
-        if len(data.data) != 0:
-            juice = np.reshape(data.data,(-1,7)) #x1, y1, x2, y2, ?, confidence, class_id
-            self.juice = juice
+    def juice_callback(self, data_bboxes):
+        print('juice_bboxes', data_bboxes)
+        if len(data_bboxes.bboxes) == 0:
+            self.juice_bboxes = []
+        else:
+            self.juice_bboxes = data_bboxes.bboxes
 
     def imageCallback(self, rgb):
         cv_image = self.bridge.imgmsg_to_cv2(rgb, "bgr8")
-        self.cv_image = cv2.resize(cv_image, (640,480))
+        self.cv_image = cv2.resize(cv_image, (self.img_width, self.img_height))
         self.seg()
 
     def seg(self):
-        mask_all, XYA_info = get_roi(self.cv_image, self.juice, self.seg_m)
+        mask_all, XYA_info = get_roi(self.cv_image, self.juice_bboxes, self.seg_m)
 
         XYA_list = XYAs()
         for i in XYA_info:
